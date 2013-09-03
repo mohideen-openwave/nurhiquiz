@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load display_functions %}
+{% block extra_scripts %}
+	<script type='text/javascript' src='https://www.google.com/jsapi'></script>
+	<script type="text/javascript">
+
+	// Load the Visualization API and the piechart package.
+	google.load('visualization', '1.0', {'packages':['corechart']});
+
+	// Set a callback to run when the Google Visualization API is loaded.
+	google.setOnLoadCallback(drawChart);
+	function drawChart() {
+
+		var data = new google.visualization.DataTable();
+		data.addColumn('string', "{% trans 'Date' %}");
+		data.addColumn('number', "{% trans 'Page completed' %}");
+		data.addColumn('number', "{% trans 'Quiz completed' %}");
+		data.addColumn('number', "{% trans 'Media viewed' %}");
+		data.addColumn('number', "{% trans 'Total' %}");
+		data.addRows( {{ data|length }} );
+		
+		{% for date,count_ap,count_aq,count_m in data %}
+			data.setValue({{ forloop.counter0 }},0,'{{ date }}');
+			data.setValue({{ forloop.counter0 }},1,{{ count_ap }});
+			data.setValue({{ forloop.counter0 }},2,{{ count_aq }});
+			data.setValue({{ forloop.counter0 }},3,{{ count_m }});
+			data.setValue({{ forloop.counter0 }},4,{{ count_ap|add:count_aq|add:count_m }});
+		{% endfor %}
+
+        var chart = new google.visualization.LineChart(document.getElementById('attempts_chart_div'));
+        chart.draw(data, {	width: 600, 
+                			height: 400,
+                			vAxis: {title: "{% trans 'No. attempts' %}"},
+                			pointSize:5,
+                			chartArea:{left:50,top:50,width:"80%",height:"75%"},
+                			backgroundColor: 'transparent',
+                			legend: {position:'top'}
+							});
+      }
+</script>
+{% endblock extra_scripts %}
+{% block content %}
+
+<h2>{{ course.title|title_lang:LANGUAGE_CODE }}</h2>
+
+{% if user.is_staff or user == course.owner %}
+	 <a href="{% url 'oppia_recent_activity_detail' course.id %}">{% trans 'course_activity_detail'%}</a>
+	 |
+	 <a href="{% url 'oppia_schedules' course.id %}">{% trans 'course_manage_schedules'%}</a>
+	 |
+	 <a href="{% url 'oppia_cohorts' course.id %}">{% trans 'course_manage_cohorts'%}</a>
+	 {% if course.has_quizzes %}
+		 |
+		 <a href="{% url 'oppia_course_quiz' course.id %}">{% trans 'course_quizzes'%}</a>
+	 {% endif %}
+{% endif %}
+	
+<div style="clear:both;"></div> 
+<div class="homewidget" style="width:300px;">
+	<h3>{% trans 'home_leaderboard' %}</h3>
+	{% include "oppia/includes/leaderboard.html" %}
+	</div>
+<div class="homewidget">
+	<h3>{% trans 'courses_recent_activity' %}</h3>
+	<div id="attempts_chart_div" class="graph">{% trans 'graph_generating'%}</div>
+</div>
+<div style="clear:both;"></div>
+
+{% endblock %}
