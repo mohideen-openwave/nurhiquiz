@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load display_functions %}
+
+{% block content %}
+
+<h2><a href="{% url 'oppia_recent_activity' course.id %}">{{ course.title|title_lang:LANGUAGE_CODE }}</a></h2>
+{% if page.object_list.count > 0 %}
+	{% include "oppia/includes/page_navigator.html" %}
+    
+	<div class="tableheader">
+		<div class='tablecell'>{% trans 'table_header_tracker_date' %}</a></div>
+		<div class='tablecell'>{% trans 'table_header_tracker_user' %}</div>
+		<div class='tablecell'>{% trans 'table_header_tracker_type' %}</div>
+		<div class='tabletitle'>{% trans 'table_header_tracker_activity' %}</div>
+		<div class='tablecell'>{% trans 'table_header_tracker_timetaken' %}</div>
+		<div class='tablecell'>{% trans 'table_header_tracker_lang' %}</div>
+		<div style='clear:both'></div>
+	</div>
+	{% for t in page.object_list %}
+		<div class="tablelist"> 	
+			<div class='tablecell'>{{ t.tracker_date|date:"d M Y H:i" }}</a></div>
+			<div class='tablecell'>{{ t.user.first_name }} {{ t.user.last_name }}</div>
+			<div class='tablecell'>{{ t.type }}</div>
+			<div class='tabletitle'>{{ t.title }}</div>
+			<div class='tablecell'>{{ t.time_taken }}</div>
+			<div class='tablecell'>{% if t.get_lang %}{{ t.get_lang}}{% else %}--{% endif %}</div>
+			<div style='clear:both'></div>
+		</div>
+	{% endfor %}
+	
+	{% include "oppia/includes/page_navigator.html" %}
+{% else %}
+	<p>{% trans 'No hits yet' %}</p>
+{% endif %}
+{% endblock %}
